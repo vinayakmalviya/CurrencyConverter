@@ -1,14 +1,80 @@
-import React from 'react';
-import { View, Image, ImageBackground, Text} from 'react-native';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { View, Image, ImageBackground, Text, Keyboard, Platform, Animated, StyleSheet } from 'react-native';
 import styles from './styles';
 
-const Logo = () => (
-    <View style={styles.container} >
-        <ImageBackground resizeMode="contain" style={styles.containerImage} source={require('./images/background.png')} resizeMode="contain">
-            <Image resizeMode="contain" style={styles.image} source={require('./images/logo.png')} />
-        </ImageBackground>
-        <Text style={styles.text}>Currency Converter</Text>
-    </View>
-);
+const ANIMATION_DURATION = 250;
+
+class Logo extends Component {
+    static propTypes = {
+        tintColor: PropTypes.string,
+    };
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            containerImageWidth: new Animated.Value(styles.$largeContainerSize),
+            imageWidth: new Animated.Value(styles.$largeImageSize),
+        };
+    }
+    componentDidMount() {
+        const name = Platform.OS === 'ios' ? 'Will' : 'Did';
+        this.keyboardDidShowListener = Keyboard.addListener(`keyboard${name}Show`, this.keyboardWillShow);
+        this.keyboardDidSHideListener = Keyboard.addListener(`keyboard${name}Hide`, this.keyboardWillHide);
+    }
+    componentWillUnmount() {
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
+    keyboardWillShow = () => {
+        const { containerImageWidth, imageWidth } = this.state;
+
+        Animated.parallel([
+            Animated.timing(containerImageWidth, {
+                toValue: styles.$smallContainerSize,
+                duration: ANIMATION_DURATION,
+            }),
+            Animated.timing(imageWidth, {
+                toValue: styles.$smallImageSize,
+                duration: ANIMATION_DURATION,
+            }),
+        ]).start();
+    };
+    keyboardWillHide = () => {
+        const { containerImageWidth, imageWidth } = this.state;
+        Animated.parallel([
+            Animated.timing(containerImageWidth, {
+                toValue: styles.$largeContainerSize,
+                duration: ANIMATION_DURATION,
+            }),
+            Animated.timing(imageWidth, {
+                toValue: styles.$largeImageSize,
+                duration: ANIMATION_DURATION,
+            }),
+        ]).start();
+    };
+    render() {
+        const { containerImageWidth, imageWidth } = this.state;
+        const { tintColor } = this.props;
+        const containerImageStyles = [
+            styles.containerImage,
+            { width: containerImageWidth, height: containerImageWidth },
+        ];
+        const imageStyles = [
+            styles.image,
+            { width: imageWidth },
+            tintColor ? { tintColor } : null,
+        ];
+        return (
+            <View style={styles.container} >
+                <Animated.View style={containerImageStyles}>
+                    <Animated.Image resizeMode="contain" style={[containerImageStyles, StyleSheet.absoluteFill]} source={require('./images/background.png')} resizeMode="contain" />
+                    <Animated.Image resizeMode="contain" style={imageStyles} source={require('./images/logo.png')} />
+                </Animated.View>
+                <Text style={styles.text}>Currency Converter</Text>
+            </View>
+        );
+    };
+};
 
 export default Logo;
