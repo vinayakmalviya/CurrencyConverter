@@ -1,17 +1,37 @@
-import React from 'react';
-import { View, FlatList, StatusBar, Text } from 'react-native';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { View, FlatList, StatusBar } from 'react-native';
+import { ListItem, Separator } from '../components/List';
 
 import currencies from '../data/currencies';
+const TEMP_CURRENT_CURRENCY = 'CAD';
 
-const CurrencyList = () => (
-    <View>
-        <StatusBar translucent={false} barStyle="light-content" />
-        <FlatList
-            data={currencies}
-            renderItem={({ item }) => <Text>{item}</Text>}
-            keyExtractor={ item => item }
-        />
-    </View>
-);
+class CurrencyList extends Component {
+    static propTypes = {
+        navigation: PropTypes.object,
+    };
+    handlePress = () => {
+        this.props.navigation.goBack(null);
+    };
+    render() {
+        return (
+            <View style={{ flex: 1 }}>
+                <StatusBar translucent={false} barStyle="light-content" />
+                <FlatList
+                    data={currencies}
+                    renderItem={({ item }) => (
+                        <ListItem
+                            text={item}
+                            selected={item === TEMP_CURRENT_CURRENCY}
+                            onPress={this.handlePress}
+                        />
+                    )}
+                    keyExtractor={ item => item }
+                    ItemSeparatorComponent={Separator}
+                />
+            </View>
+        );
+    };
+}
 
 export default CurrencyList;
